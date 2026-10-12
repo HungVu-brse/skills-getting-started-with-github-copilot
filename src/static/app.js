@@ -7,11 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
-      const response = await fetch("/activities");
+      const response = await fetch("/activities", { cache: "no-store" });
       const activities = await response.json();
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      activitySelect.length = 1;
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -26,6 +27,107 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
         `;
+
+        const participantsSection = document.createElement("div");
+        participantsSection.className = "participants-section";
+
+        const participantsHeading = document.createElement("h5");
+        participantsHeading.textContent = `Participants (${details.participants.length})`;
+        participantsSection.appendChild(participantsHeading);
+
+        if (details.participants.length > 0) {
+          const participantsList = document.createElement("ul");
+          participantsList.className = "participants-list";
+
+          details.participants.forEach((participant) => {
+            const listItem = document.createElement("li");
+
+            const participantName = document.createElement("span");
+            participantName.textContent = participant;
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "remove-participant";
+            removeButton.title = "Remove participant";
+            removeButton.setAttribute("aria-label", `Remove ${participant} from ${name}`);
+            removeButton.innerHTML = `
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M4 7h16M10 11v6m4-6v6M5 7l1 13h12l1-13M9 7V4h6v3" />
+              </svg>
+            `;
+            removeButton.addEventListener("click", async () => {
+              removeButton.disabled = true;
+
+              try {
+                const response = await fetch(
+                  `/activities/${encodeURIComponent(name)}/signup?email=${encodeURIComponent(participant)}`,
+                  { method: "DELETE" }
+                );
+                const result = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(result.detail || "Failed to remove participant");
+                }
+
+                await fetchActivities();
+
+                const undoButton = document.createElement("button");
+                undoButton.type = "button";
+                undoButton.className = "undo-button";
+                undoButton.textContent = "Undo";
+                undoButton.addEventListener("click", async () => {
+                  undoButton.disabled = true;
+
+                  try {
+                    const undoResponse = await fetch(
+                      `/activities/${encodeURIComponent(name)}/signup?email=${encodeURIComponent(participant)}&phone_number=${encodeURIComponent(result.phone_number || "")}`,
+                      { method: "POST" }
+                    );
+                    const undoResult = await undoResponse.json();
+
+                    if (!undoResponse.ok) {
+                      throw new Error(undoResult.detail || "Failed to restore participant");
+                    }
+
+                    await fetchActivities();
+                    messageDiv.textContent = `Restored ${participant} to ${name}.`;
+                    messageDiv.className = "success";
+                  } catch (error) {
+                    messageDiv.firstChild.textContent = error.message || "Failed to restore participant.";
+                    undoButton.disabled = false;
+                    console.error("Error restoring participant:", error);
+                  }
+                });
+
+                messageDiv.replaceChildren(
+                  document.createTextNode(`Removed ${participant} from ${name}.`),
+                  undoButton
+                );
+                messageDiv.className = "success message-with-action";
+                messageDiv.classList.remove("hidden");
+              } catch (error) {
+                messageDiv.textContent = error.message || "Failed to remove participant. Please try again.";
+                messageDiv.className = "error";
+                messageDiv.classList.remove("hidden");
+                removeButton.disabled = false;
+                console.error("Error removing participant:", error);
+              }
+            });
+
+            listItem.appendChild(participantName);
+            listItem.appendChild(removeButton);
+            participantsList.appendChild(listItem);
+          });
+
+          participantsSection.appendChild(participantsList);
+        } else {
+          const emptyState = document.createElement("p");
+          emptyState.className = "participants-empty";
+          emptyState.textContent = "No participants yet";
+          participantsSection.appendChild(emptyState);
+        }
+
+        activityCard.appendChild(participantsSection);
 
         activitiesList.appendChild(activityCard);
 
@@ -46,11 +148,12 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
 
     const email = document.getElementById("email").value;
+    const phoneNumber = document.getElementById("phone").value;
     const activity = document.getElementById("activity").value;
 
     try {
       const response = await fetch(
-        `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
+        `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}&phone_number=${encodeURIComponent(phoneNumber)}`,
         {
           method: "POST",
         }
@@ -62,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        await fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";

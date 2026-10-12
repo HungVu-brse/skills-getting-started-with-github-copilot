@@ -74,6 +74,89 @@ section h3 {
   margin-bottom: 8px;
 }
 
+.participants-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #dce3e8;
+}
+
+.participants-section h5 {
+  margin-bottom: 7px;
+  color: #315b52;
+  font-size: 0.95rem;
+}
+
+.participants-list {
+  list-style: none;
+  padding-left: 0;
+  color: #475569;
+}
+
+.participants-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid #e8edf0;
+}
+
+.participants-list li:last-child {
+  border-bottom: 0;
+}
+
+.participants-list li span {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.remove-participant {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background-color: transparent;
+  color: #bd3434;
+}
+
+.remove-participant svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.remove-participant:hover:not(:disabled) {
+  border-color: #f1c9c6;
+  background-color: #fff0ef;
+  color: #982828;
+}
+
+.remove-participant:focus-visible {
+  outline: 2px solid #bd3434;
+  outline-offset: 2px;
+}
+
+.remove-participant:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.participants-empty {
+  color: #718096;
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
 .form-group {
   margin-bottom: 15px;
 }
@@ -82,6 +165,14 @@ section h3 {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
+}
+
+.form-note {
+  display: block;
+  margin-top: 5px;
+  color: #687783;
+  font-size: 0.875rem;
+  line-height: 1.4;
 }
 
 .form-group input,
@@ -106,6 +197,32 @@ button {
 
 button:hover {
   background-color: #3949ab;
+}
+
+.message-with-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.undo-button {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border: 1px solid #a5d6a7;
+  border-radius: 4px;
+  background-color: white;
+  color: #2e7d32;
+}
+
+.undo-button:hover:not(:disabled) {
+  background-color: #f1faf2;
+}
+
+.undo-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 .message {
